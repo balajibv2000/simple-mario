@@ -16,7 +16,7 @@ public class SimpleMario extends ApplicationAdapter {
 	@Override
 	public void create () {
 		batch = new SpriteBatch();
-		background = new Texture("background.png");
+		background = new Texture("bg.png");
 		mario = new Texture[4];
 		mario[0] = new Texture("frame-1.png");
 		mario[1] = new Texture("frame-2.png");
