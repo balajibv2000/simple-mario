@@ -16,21 +16,13 @@ import java.util.Random;
 
 import sun.rmi.runtime.Log;
 
-
-
-
 public class SimpleMario extends ApplicationAdapter {
 	SpriteBatch batch;
+
 	Texture background;
-	Texture[] mario;
-	int marioState = 0;
-	int pause = 0;
-	float gravity = 0.2f;
-	float velocity = 0;
-	int marioY = 0;
-	Rectangle marioRectangle;
+
+	Avatar mario;
 	BitmapFont font;
-	Texture  dizzy;
 
 	Coin coin;
 	Bomb bomb;
@@ -42,21 +34,22 @@ public class SimpleMario extends ApplicationAdapter {
 	@Override
 	public void create () {
 		batch = new SpriteBatch();
+
+		// initializing background
 		background = new Texture("bg.png");
-		mario = new Texture[4];
-		mario[0] = new Texture("frame-1.png");
-		mario[1] = new Texture("frame-2.png");
-		mario[2] = new Texture("frame-3.png");
-		mario[3] = new Texture("frame-4.png");
 
-		marioY = Gdx.graphics.getHeight() / 2;
+		// initializing mario avatar
+		String[] textures = {"frame-1.png" , "frame-2.png" , "frame-3.png" ,"frame-4.png"};
+		String dizzyTexture = "dizzy-1.png";
+		mario = new Avatar(textures , dizzyTexture);
 
+		// initializing coin and bomb object
 		coin = new Coin("coin.png");
 		bomb = new Bomb("bomb.png");
+
 		random = new Random();
 
-		dizzy = new Texture("dizzy-1.png");
-
+		// initializing font for score
 		font = new BitmapFont();
 		font.setColor(Color.WHITE);
 		font.getData().setScale(10);
@@ -67,48 +60,19 @@ public class SimpleMario extends ApplicationAdapter {
 	public void render () {
 		ScreenUtils.clear(0,0,0.2f,1);
 		batch.begin();
+		float height =(( Gdx.graphics.getHeight() / 100)*60);
 		batch.draw(background , 0,0, Gdx.graphics.getWidth(),Gdx.graphics.getHeight());
 
 		if (gameState == 1){
 			// game is live
-			if(coin.objectCount< 100){
-				coin.objectCount++;
-			} else {
-				coin.objectCount = 0;
-				coin.makeObject();
-			}
-
-			if(bomb.objectCount < 200){
-				bomb.objectCount++;
-			} else {
-				bomb.objectCount = 0;
-				bomb.makeObject();
-			}
-
-			coin.drawRectangles(batch);
-			bomb.drawRectangles(batch);
+			coin.coinsRender(batch);
+			bomb.bombsRender(batch);
 
 			if(Gdx.input.justTouched()){
-				velocity = -10;
+				mario.jump(height);
 			}
+			mario.run();
 
-			if(pause < 8){
-				pause++;
-			} else {
-				pause = 0;
-				if(marioState < 3){
-					marioState++;
-				} else {
-					marioState = 0;
-				}
-			}
-
-			velocity += gravity;
-			marioY -= velocity;
-
-			if(marioY <= 0) {
-				marioY = 0;
-			}
 		} else if (gameState == 0){
 			// waiting to start
 			if (Gdx.input.justTouched()) {
@@ -117,41 +81,28 @@ public class SimpleMario extends ApplicationAdapter {
 		} else if (gameState == 2){
 			// game over
 			if (Gdx.input.justTouched()) {
-				gameState = 1;
-				marioY = Gdx.graphics.getHeight() / 2;
-				score = 0;
-				velocity = 0;
-
+				mario.reset();
 				coin.objectsClear();
-
 				bomb.objectsClear();
+				gameState = 1;
+				score = 0;
 
 			}
 		}
-
 
 		if (gameState == 2){
-			batch.draw(dizzy , Gdx.graphics.getWidth() / 2 - mario[0].getWidth() / 2,  marioY);
+			mario.setDizzy(batch);
 		} else {
-			batch.draw(mario[marioState],Gdx.graphics.getWidth() / 2 - mario[0].getWidth() / 2,  marioY);
+			// Gdx.app.log("avatarState", ":" + mario.avatarState);
+			mario.animate(batch);
 		}
 
-		marioRectangle = new Rectangle(Gdx.graphics.getWidth() / 2 - mario[0].getWidth() / 2 , marioY , mario[marioState].getWidth() , mario[marioState].getHeight());
+		if(coin.checkOverlap(mario.getRectangle())){
+			score++;
+		};
 
-		for(int i = 0 ; i < coin.objectRectangles.size() ; i++){
-			if(Intersector.overlaps(marioRectangle , coin.objectRectangles.get(i))){
-				score++;
-				coin.objectRemove(i);
-				break;
-			}
-		}
-
-		for(int i = 0 ; i < bomb.objectRectangles.size() ; i++){
-			if(Intersector.overlaps(marioRectangle , bomb.objectRectangles.get(i))){
-				Gdx.app.log("bomb","collision");
-				bomb.objectRemove(i);
-				gameState = 2;
-			}
+		if(bomb.checkOverlap(mario.getRectangle())){
+			gameState = 2;
 		}
 
 		font.draw(batch, String.valueOf(score) , 100 ,200);
