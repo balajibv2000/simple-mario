@@ -3,18 +3,12 @@ package com.simplemario.game;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.Intersector;
-import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.ScreenUtils;
 
-import java.util.ArrayList;
 import java.util.Random;
-
-import sun.rmi.runtime.Log;
 
 public class SimpleMario extends ApplicationAdapter {
 	SpriteBatch batch;
@@ -22,13 +16,16 @@ public class SimpleMario extends ApplicationAdapter {
 	Texture background;
 
 	Avatar mario;
-	BitmapFont font;
+	BitmapFont scoreMap;
+	BitmapFont healthMap;
 
 	Coin coin;
 	Bomb bomb;
+	Arrow arrow;
 	Random random;
 
 	int score = 0;
+	int health = 3;
 	int gameState = 0;
 
 	@Override
@@ -39,20 +36,23 @@ public class SimpleMario extends ApplicationAdapter {
 		background = new Texture("bg.png");
 
 		// initializing mario avatar
-		String[] textures = {"frame-1.png" , "frame-2.png" , "frame-3.png" ,"frame-4.png"};
-		String dizzyTexture = "dizzy-1.png";
-		mario = new Avatar(textures , dizzyTexture);
+		mario = Avatar.getInstance();
 
 		// initializing coin and bomb object
 		coin = new Coin("coin.png");
 		bomb = new Bomb("bomb.png");
+		arrow = new Arrow("arrow.png");
 
 		random = new Random();
 
 		// initializing font for score
-		font = new BitmapFont();
-		font.setColor(Color.WHITE);
-		font.getData().setScale(10);
+		scoreMap = new BitmapFont();
+		scoreMap.setColor(Color.WHITE);
+		scoreMap.getData().setScale(10);
+
+		healthMap = new BitmapFont();
+		healthMap.setColor(Color.RED);
+		healthMap.getData().setScale(7);
 		
 	}
 
@@ -67,6 +67,7 @@ public class SimpleMario extends ApplicationAdapter {
 			// game is live
 			coin.coinsRender(batch);
 			bomb.bombsRender(batch);
+			arrow.boomerangRender(batch);
 
 			if(Gdx.input.justTouched()){
 				mario.jump(height);
@@ -86,6 +87,7 @@ public class SimpleMario extends ApplicationAdapter {
 				bomb.objectsClear();
 				gameState = 1;
 				score = 0;
+				health = 3;
 
 			}
 		}
@@ -105,7 +107,15 @@ public class SimpleMario extends ApplicationAdapter {
 			gameState = 2;
 		}
 
-		font.draw(batch, String.valueOf(score) , 100 ,200);
+		if(arrow.checkOverlap(mario.getRectangle())){
+			health--;
+			mario.setDizzy(batch);
+			if(health == 0)
+				gameState = 2;
+		}
+
+		scoreMap.draw(batch, String.valueOf(score) , 900 ,2100);
+		healthMap.draw(batch, String.valueOf("Health: "+health) , 100 ,2100);
 
 		batch.end();
 	}

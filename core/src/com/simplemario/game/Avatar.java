@@ -15,17 +15,25 @@ public class Avatar {
     int avatarY = 0;
     Rectangle avatarRectangle;
 
-    Avatar(String [] textures , String dizzyTextue){
-        avatar = new Texture[4];
-        avatar[0] = new Texture(textures[0]);
-        avatar[1] = new Texture(textures[1]);
-        avatar[2] = new Texture(textures[2]);
-        avatar[3] = new Texture(textures[3]);
+    private static Avatar avatar_instance = null;
 
-        dizzy = new Texture(dizzyTextue);
+    private Avatar(){
+        avatar = new Texture[4];
+        avatar[0] = new Texture("frame-1.png");
+        avatar[1] = new Texture("frame-2.png");
+        avatar[2] = new Texture("frame-3.png");
+        avatar[3] = new Texture("frame-4.png");
+        dizzy = new Texture("dizzy-1.png");
 
         avatarY = Gdx.graphics.getHeight() / 2;
 
+    }
+
+    public static Avatar getInstance(){
+        if(avatar_instance == null){
+            avatar_instance = new Avatar();
+        }
+        return avatar_instance;
     }
 
     public void jump(float height){
@@ -58,15 +66,15 @@ public class Avatar {
     }
 
     public void animate(SpriteBatch batch){
-        batch.draw(avatar[avatarState],Gdx.graphics.getWidth() / 2 - avatar[0].getWidth() / 2,  avatarY);
+        batch.draw(avatar[avatarState],Gdx.graphics.getWidth() / 4 - avatar[0].getWidth() / 2,  avatarY);
     }
 
     public void setDizzy(SpriteBatch batch){
-        batch.draw(dizzy , Gdx.graphics.getWidth() / 2 - avatar[0].getWidth() / 2,  avatarY);
+        batch.draw(dizzy , Gdx.graphics.getWidth() / 4- avatar[0].getWidth() / 2,  avatarY);
     }
 
     public Rectangle getRectangle(){
-        avatarRectangle = new Rectangle(Gdx.graphics.getWidth() / 2 - avatar[0].getWidth() / 2 , avatarY , avatar[avatarState].getWidth() , avatar[avatarState].getHeight());
+        avatarRectangle = new Rectangle(Gdx.graphics.getWidth() / 4 - avatar[0].getWidth() / 2 , avatarY , avatar[avatarState].getWidth() , avatar[avatarState].getHeight());
 
         return avatarRectangle;
     }
